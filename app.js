@@ -1,8 +1,19 @@
 const createError = require("http-errors");
+const cookieSession = require("cookie-session");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const config = require("./routes/config");
+const mongoose = require("mongoose");
+
+mongoose.connect(config.db, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error"));
 
 const indexRouter = require("./routes/index");
 const adminRouter = require("./routes/admin");
@@ -26,6 +37,14 @@ app.use(function (req, res, next) {
 
     next();
 });
+
+app.use(
+    cookieSession({
+        name: "session",
+        keys: config.KeySession,
+        maxAge: config.maxAgeSession,
+    })
+);
 
 app.use("/", indexRouter);
 app.use("/admin", adminRouter);
